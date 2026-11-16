@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: synapsestudios/setup-aws-emulator@v1.0.0 # x-release-please-version
+      - uses: synapsestudios/setup-aws-emulator@v1.0.1 # x-release-please-version
         with:
           version: 1.0.385
 
@@ -75,7 +75,7 @@ Steps 5 and 6 are skipped when `start` is `false`.
 Use `start: false` when your own script starts the emulator, for example to choose a port or run more than one.
 
 ```yaml
-- uses: synapsestudios/setup-aws-emulator@v1.0.0 # x-release-please-version
+- uses: synapsestudios/setup-aws-emulator@v1.0.1 # x-release-please-version
   with:
     version: 1.0.385
     start: false
