@@ -1,0 +1,71 @@
+name: "Test"
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  start:
+    name: "Start (${{ matrix.os }}, ${{ matrix.version }})"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm]
+        version: [latest, 1.0.385]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup AWS Emulator
+        id: emulator
+        uses: ./
+        with:
+          version: ${{ matrix.version }}
+
+      - name: Check the pinned version
+        if: matrix.version != 'latest'
+        env:
+          INSTALLED: ${{ steps.emulator.outputs.version }}
+          WANTED: ${{ matrix.version }}
+        run: test "$INSTALLED" = "$WANTED"
+
+      - name: Call the emulator
+        run: |
+          test "$(aws sts get-caller-identity --query Account --output text)" = 000000000000
+          aws s3 mb s3://setup-aws-emulator-test
+          aws s3 ls | grep -q setup-aws-emulator-test
+
+      - name: Check telemetry is off
+        env:
+          LOG_FILE: ${{ steps.emulator.outputs.log-file }}
+        run: |
+          test "$EMULATOR_TELEMETRY" = off
+          grep -q "telemetry: disabled" "$LOG_FILE"
+
+  install-only:
+    name: "Install only"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup AWS Emulator
+        id: emulator
+        uses: ./
+        with:
+          start: false
+          telemetry: on
+
+      - name: Check it is installed and not running
+        env:
+          ENDPOINT_URL: ${{ steps.emulator.outputs.endpoint-url }}
+        run: |
+          aws-emulator -v
+          test "$EMULATOR_TELEMETRY" = on
+          test -z "$ENDPOINT_URL"
+          test -z "${AWS_ENDPOINT_URL:-}"
+          ! pgrep -x aws-emulator

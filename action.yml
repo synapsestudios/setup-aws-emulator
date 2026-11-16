@@ -1,0 +1,49 @@
+name: "Setup AWS Emulator"
+description: "Install and start AWS Emulator, a local emulator of the AWS APIs"
+branding:
+  icon: "cloud"
+  color: "orange"
+inputs:
+  version:
+    description: "AWS Emulator version to install, such as 1.0.385, or latest"
+    default: "latest"
+  telemetry:
+    description: "Whether the emulator reports usage data to AWS: on or off"
+    default: "off"
+  start:
+    description: "Start the emulator and point the AWS CLI and SDKs in later steps at it"
+    default: "true"
+outputs:
+  version:
+    description: "The installed AWS Emulator version"
+    value: ${{ steps.install.outputs.version }}
+  endpoint-url:
+    description: "The URL the emulator serves on. Empty when start is false"
+    value: ${{ steps.start.outputs.endpoint-url }}
+  ca-file:
+    description: "Path of the emulator's certificate. Empty when start is false"
+    value: ${{ steps.start.outputs.ca-file }}
+  java-truststore-file:
+    description: "Path of the emulator's trust store for Java. Empty when start is false"
+    value: ${{ steps.start.outputs.java-truststore-file }}
+  log-file:
+    description: "Path of the emulator's log. Empty when start is false"
+    value: ${{ steps.start.outputs.log-file }}
+runs:
+  using: "composite"
+  steps:
+    - name: Install AWS Emulator
+      id: install
+      shell: bash
+      env:
+        INPUT_VERSION: ${{ inputs.version }}
+        INPUT_TELEMETRY: ${{ inputs.telemetry }}
+      run: bash "$GITHUB_ACTION_PATH/install.sh"
+
+    - name: Start AWS Emulator
+      id: start
+      if: inputs.start == 'true'
+      shell: bash
+      env:
+        EMULATOR_TELEMETRY: ${{ steps.install.outputs.telemetry }}
+      run: bash "$GITHUB_ACTION_PATH/start.sh"
