@@ -9,9 +9,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: synapsestudios/setup-aws-emulator@v1.0.0
+      - uses: synapsestudios/setup-aws-emulator@v1.0.0 # x-release-please-version
         with:
           version: 1.0.385
 
@@ -74,10 +74,14 @@ Steps 5 and 6 are skipped when `start` is `false`.
 Use `start: false` when your own script starts the emulator, for example to choose a port or run more than one.
 
 ```yaml
-- uses: synapsestudios/setup-aws-emulator@v1.0.0
+- uses: synapsestudios/setup-aws-emulator@v1.0.0 # x-release-please-version
   with:
     version: 1.0.385
     start: false
 
 - run: tests/emulator/run.sh
 ```
+
+## Contributing
+
+Pull requests are squash merged, and the title becomes the commit message, so it must follow [Conventional Commits](https://www.conventionalcommits.org), for example `fix: wait for the health check`. [release-please](https://github.com/googleapis/release-please) reads those messages and opens a pull request for the next release.
