@@ -6,9 +6,12 @@
 #   EMULATOR_TELEMETRY  on or off
 set -euo pipefail
 
-log="${RUNNER_TEMP:-/tmp}/aws-emulator.log"
+EMULATOR_BIN=/usr/bin/aws-emulator
 
-nohup aws-emulator --telemetry "${EMULATOR_TELEMETRY:-off}" >"$log" 2>&1 &
+# A fresh file that only this user can read, at a name nobody can guess.
+log=$(mktemp "${RUNNER_TEMP:-/tmp}/aws-emulator.XXXXXX.log")
+
+nohup "$EMULATOR_BIN" --telemetry "${EMULATOR_TELEMETRY:-off}" >"$log" 2>&1 &
 pid=$!
 
 # The emulator logs JSON lines. The startup line is the documented way to
@@ -33,6 +36,19 @@ health_check_url=$(field health_check_url)
 config_file=$(field config_file)
 ca_file=$(field ca_file)
 java_truststore_file=$(field java_truststore_file)
+
+# These values go into GITHUB_ENV and GITHUB_OUTPUT, one per line. A line
+# break in one would set a variable of its own, so stop if anything is off.
+[[ "$endpoint_url" =~ ^https://127\.0\.0\.1:[0-9]+$ ]] || {
+  echo "::error::unexpected emulator endpoint"
+  exit 1
+}
+for value in "$health_check_url" "$config_file" "$ca_file" "$java_truststore_file"; do
+  if [ -z "$value" ] || [[ "$value" == *[$'\r\n']* ]]; then
+    echo "::error::unexpected value in the emulator startup line"
+    exit 1
+  fi
+done
 
 curl -sf --retry 10 --retry-delay 1 --retry-connrefused --cacert "$ca_file" "$health_check_url" >/dev/null
 echo "AWS Emulator is ready at $endpoint_url"
