@@ -6,6 +6,9 @@ updates:
       interval: daily
       time: "03:00"
       timezone: America/Phoenix
+    # Wait a week before taking a new release, so a bad one can be caught first.
+    cooldown:
+      default-days: 7
     commit-message:
       prefix: chore
       include: scope

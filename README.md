@@ -68,6 +68,7 @@ Steps 5 and 6 are skipped when `start` is `false`.
 - **Real AWS in the same job.** After this action runs, the AWS CLI and SDKs in later steps trust only the emulator's certificate and send every request to it. Call AWS from a different job.
 - **Node.js, Java, Rust, and .NET.** These SDKs don't read `AWS_CA_BUNDLE`. Set `NODE_EXTRA_CA_CERTS` or `SSL_CERT_FILE` to the `ca-file` output, or point the JVM at `java-truststore-file`. See [Trusting the emulator certificate in each SDK](https://docs.aws.amazon.com/emulator/latest/userguide/point-sdk-to-emulator.html#point-sdk-ca).
 - **State.** The emulator keeps resources in memory. They're gone when the job ends.
+- **Pinning.** A tag can be moved. To be sure of the code you run, pin the action to a full commit SHA and let Dependabot update it.
 
 ## Install only
 
