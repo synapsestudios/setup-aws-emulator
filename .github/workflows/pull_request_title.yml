@@ -1,0 +1,24 @@
+name: "Pull Request Title"
+
+# Pull requests are squash merged and the title becomes the commit message on
+# main, which release-please reads to pick the next version.
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+permissions: {}
+
+jobs:
+  conventional-commit-title:
+    name: "Conventional Commit Title"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check the title
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          pattern='^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([^()]+\))?!?: [^ ].*$'
+          if [[ ! "$TITLE" =~ $pattern ]]; then
+            echo "::error::The title must follow Conventional Commits, for example \"fix: wait for the health check\". Got \"$TITLE\"."
+            exit 1
+          fi
